@@ -494,8 +494,5 @@ window.onload = function init() {
 
 // save data
 window.onbeforeunload = function(){
-  todoItems.forEach(ele=>{
-    delete ele[matchSym];
-  })
   localStorage.setItem('todoItems', JSON.stringify(todoItems))
 }
