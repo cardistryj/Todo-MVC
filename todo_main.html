@@ -1,0 +1,103 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width,initial-scale=1,user-scalable=no,maximum-scale=1" name="viewport"/>
+    <title>Todo</title>
+    <script src="todo.js"></script>
+    <link rel="stylesheet" type="text/css" href="todo.css">
+</head>
+<body>
+  <div class="modal-backdrop"></div>
+  <div class="modal">
+    <div class="modal-panel">
+      <div class="item-description">
+        <div>
+          <input type="text" id="item-title" placeholder="title">
+        </div>
+        <div>
+          <input id="item-status" type="checkbox">
+          <input type="date" id="item-date" placeholder="Date">
+          <label id="item-label" class="normal">normal</label>
+          <ul>
+            <li class="high">high</li>
+            <li class="middle">middle</li>
+            <li class="normal">normal</li>
+            <li class="low">low</li>
+          </ul>
+        </div>
+        <div>
+          <input type="text" id="edit-tag" placeholder="tags">
+          <ul class="filtered-tags">
+          </ul>
+          <div class="item-tag"></div>
+        </div>
+      </div>
+      <div class="editPanel">
+        <div class="editTool">
+          <input type="checkbox" class="bold"/>
+          <input type="checkbox" class="italic"/>
+          <input type="checkbox" class="underline"/>
+          <button class="side-header">h</button>
+          <button class="paragraph">p</button>
+          <button class="horizontal-line">---</button>
+        </div>
+        <div id="richtext" contenteditable="true"></div>
+      </div>
+    </div>
+  </div>
+    <div class="todoapp">
+        <header class="header">
+          <h1>Todos</h1>
+          <!-- Add New Item -->
+          <input class="new-todo" type="text" placeholder="What needs to be done?" autofocus>
+        </header>
+        <section class="meta">
+          <div class="statistics">
+            <div class="toggle-all"><input type="checkbox"></div>
+            <div class="filter-icon"></div>
+            <div class="clear-completed"><span></span></div>
+            <div class="todo-count"></div>
+          </div>
+          <div class="filters">
+            <div id="status">
+              <div>&radic; Status</div>
+              <label>all</label>
+              <ul>
+                <li>all</li>
+                <li>pending</li>
+                <li>completed</li>
+              </ul>
+            </div>
+            <div id="date">
+              <div> Date</div>
+              <label>all</label>
+              <ul>
+              </ul>
+            </div>
+            <div id="priority">
+              <div>! Priority</div>
+              <label>all</label>
+              <ul>
+                <li>all</li>
+                <li class="high">high</li>
+                <li class="middle">middle</li>
+                <li class="normal">normal</li>
+                <li class="low">low</li>
+              </ul>
+            </div>
+            <div id="tag">
+              <div># Tag</div>
+              Select  
+              <label>+</label>
+              <ul>
+              </ul>
+              <div class="tags"></div>
+            </div>
+          </div>
+        </section>
+        <section class="main">
+          <ul class="todo-list"></ul>
+        </section>
+      </div>
+</body>
+</html>
