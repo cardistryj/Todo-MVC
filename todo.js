@@ -1,5 +1,5 @@
 let $ = sel => document.querySelector(sel);
-var $All = sel => document.querySelectorAll(sel);
+let $All = sel => document.querySelectorAll(sel);
 
 const CL_COMPLETED = 'completed';
 const CL_SELECTED = 'selected';
@@ -9,12 +9,13 @@ const CL_CLEAN = 'clean';
 const CL_MODALSHOW = 'modal-show';
 const CL_ACTIVE = 'active';
 
-let dataSym = Symbol();
-let matchSym = Symbol();
+let dataSym = Symbol();     // bind data for DOM
+let matchSym = Symbol();    // bind matched content for todo item
 
+// load data
 let todoItems = JSON.parse(localStorage.getItem('todoItems'))||[];
 
-
+// sift the orignal todo-list under given filter conditions
 function flush(){
     let condition = { keyword:'' };
     if($('.filter-icon').classList.contains(CL_ACTIVE)){
@@ -30,14 +31,14 @@ function flush(){
     }
     let renderlist=todoItems.filter(ele=>{
       for(let key in condition){
-        if(key=='keyword'){
-          let contentPlain = ele.content.split(/<.+?>/).join('');
+        if(key=='keyword'){       // match keyword in 'title' as prefix, and all in 'content'
+          let contentPlain = ele.content.split(/<.+?>/).join('');   // degrade rich text to the plain one
           let matchIdx = contentPlain.indexOf(condition[key]);
           if(matchIdx!=-1){
             let startIdx = Math.max(matchIdx - 3,0);
             let matchLength = Math.min(condition[key].length, 7);
             let endIdx = Math.min(matchIdx+10, contentPlain.length);
-            ele[matchSym] = 
+            ele[matchSym] =                                         // format matched result
 `${startIdx>0?'..':''}${contentPlain.slice(startIdx, matchIdx)}\
 <strong>${contentPlain.slice(matchIdx, matchIdx+matchLength)}</strong>\
 ${contentPlain.slice(matchIdx+matchLength, endIdx)}\
@@ -64,6 +65,7 @@ ${endIdx<contentPlain.length?'..':''}`;
     render(renderlist);
 }
 
+// render the given filtered list from function 'flush'
 function render(renderlist){
   let renderlistDom = $('.todo-list');
   let newrenderlistDom = document.createElement('ul');
@@ -86,15 +88,18 @@ function render(renderlist){
     if(ele.completed) 
       itemDom.classList.add(CL_COMPLETED);
 
+    // toggle todo item
     let toggle=itemDom.querySelector('.toggle');
     toggle.checked = ele.completed;
     toggle[dataSym] = {ele};
     toggle.onchange = flushers.toggleItemStatus;
 
+    // edit todo item
     let label = itemDom.querySelector('.todo-label');
     label[dataSym] = {ele};
     label.ontouchend = utils.openModal;
 
+    // drag to delete
     itemDom[dataSym] = {ele};
     itemDom.ontouchstart = gestures.touchItem;
     itemDom.ontouchmove = gestures.dragItem;
@@ -102,7 +107,6 @@ function render(renderlist){
 
     newrenderlistDom.appendChild(itemDom);
   })
-
   $('.main').replaceChild(newrenderlistDom, renderlistDom);
 
   // todo items count
@@ -113,7 +117,7 @@ function render(renderlist){
   toggleAll.checked = leftNum == 0;
   toggleAll[dataSym] = {renderlist};
 
-  // clear complete button
+  // clear completed
   let clearComplete = $('.clear-completed');
   if(renderlist.length - leftNum > 0)
     clearComplete.classList.add(CL_CLEAN);
@@ -122,11 +126,12 @@ function render(renderlist){
   
   clearComplete[dataSym] = {renderlist};
 }
-  
+
+// all methods which impose modification on the present todo list, and need a flush
 let flushers = {
   removeItem:function() {
     todoItems.splice(todoItems.indexOf(this[dataSym].ele), 1);
-    utils.diffTagsAndDates();
+    utils.updateTagsAndDates();
   },
   toggleItemStatus: function(){
     this[dataSym].ele.completed = !this[dataSym].ele.completed;
@@ -146,15 +151,15 @@ let flushers = {
       if(item.completed)
         todoItems.splice(todoItems.indexOf(item), 1);
     })
-    utils.diffTagsAndDates();
+    utils.updateTagsAndDates();
   },
-  selectListItem: function(){
+  selectListItem: function(){       // select a value in the filter dropdown list
       let label = this.parentElement.previousElementSibling;
       label.innerHTML=this.innerHTML;
       label.classList.remove('high','middle','normal','low');
       label.classList.add(this.classList.item(0));
   },
-  toggleTag: function(event){
+  toggleTag: function(event){     // select or remove a tag, used in both filter and a single todo item
     this.parentElement.previousElementSibling.focus();
     if(this.classList.contains(CL_SELECTED)){
       this.classList.remove(CL_SELECTED);
@@ -172,11 +177,11 @@ let flushers = {
     }
     event.stopPropagation();
   },
-  removeTagSpan: function(){
+  removeTagSpan: function(){      // remove tag from its present area
     this[dataSym].ele.click();
   },
   addTodoItem: function(ev) {
-    // Enter
+    // 'Enter' pressed
     if (ev.keyCode != 13 || $('.filter-icon').classList.contains(CL_ACTIVE)) return;
     let title = this.value;
     if (title == '') {
@@ -192,15 +197,15 @@ let flushers = {
       date: utils.formatDate(new Date())
     })
     this.value = '';
-    this.blur();
+    this.blur();      // manually blur to collapse keyboard on the mobile
   },
-  toggleFilters: function(){
+  toggleFilters: function(){    // enable filters 
     this.classList.toggle(CL_ACTIVE);
     $('.filters').classList.toggle(CL_ACTIVE);
     let placeholder = this.classList.contains(CL_ACTIVE)?'...or search something':'What needs to be done?';
     $('.new-todo').setAttribute('placeholder', placeholder);
   },
-  closeModal: function(event){
+  closeModal: function(event){  // close edit modal, while update the corresponding todo item
     if(event.target == event.currentTarget){
       this.classList.remove(CL_MODALSHOW);
       this.previousElementSibling.classList.remove(CL_MODALSHOW);
@@ -214,7 +219,7 @@ let flushers = {
         }),
         content: this.querySelector('#richtext').innerHTML
       })
-      utils.diffTagsAndDates();
+      utils.updateTagsAndDates();
       event.stopPropagation();
     }
   },
@@ -232,13 +237,14 @@ let flushers = {
   };
 }) (flushers);
 
+// other method or tools, which do not need to reflush
 let utils = {
-  clearDropDown: function(){
+  clearDropDown: function(){          // collapse all dropdown filters
     $All('label').forEach(ele=>{
       ele.classList.remove(CL_CHECKED);
     })
   },
-  toggleDropdown: function(event){
+  toggleDropdown: function(event){    // unfold or collapse certain dropdown filter
     let flag = this.classList.contains(CL_CHECKED);
     utils.clearDropDown();
     if(!flag)
@@ -251,7 +257,7 @@ let utils = {
   addTags: function(ev){
     if (ev.keyCode != 13) return;
     let tagsUl = this.nextElementSibling;
-    // forbid duplicate tags
+    // handle duplicate tags, select them directly
     let existedTag = [...tagsUl.querySelectorAll('li')].find(ele=>{
       return ele.innerHTML==this.value;
     })
@@ -262,17 +268,18 @@ let utils = {
     }
     let new_tag = document.createElement('li');
     new_tag.innerHTML = this.value;
+    // update tags in the filters simultaneously, for ease of diff later
     let new_tag_ = document.createElement('li');
     new_tag_.innerHTML = this.value;
     this.value = '';
     tagsUl.insertBefore(new_tag, tagsUl.firstElementChild);
-    let filterTagUl = $('#tag ul');       // update tags filters, for ease of diff later
+    let filterTagUl = $('#tag ul');
     filterTagUl.insertBefore(new_tag_, filterTagUl.firstElementChild)
     new_tag.onclick = flushers.toggleTag;
     new_tag_.onclick = flushers.toggleTag;
     new_tag.click();
   },
-  openModal: function(){
+  openModal: function(){    // open edit modal, infuse corresponding todo item data
     let modal = $('.modal');
     modal.classList.add(CL_MODALSHOW);
     $('.modal-backdrop').classList.add(CL_MODALSHOW);
@@ -298,7 +305,7 @@ let utils = {
     modal.querySelector('#richtext').innerHTML = ele.content;
     modal[dataSym] = this[dataSym];
   },
-  diffTagsAndDates: function(){  // diff the tags and dates, patch or remove
+  updateTagsAndDates: function(){  // diff the tags and dates, patch or remove to update
     let tags = []
     let datesSet = new Set();
     datesSet.add('all')
@@ -315,6 +322,7 @@ let utils = {
     let Dates = $('#date ul');
     let dateLabel = $('#date label');
 
+    // compute difference and remove those old outliers
     $All('#tag ul li,.filtered-tags li').forEach(ele=>{
       oriTagsSet.add(ele.innerHTML)
       if(!tagsSet.has(ele.innerHTML)){
@@ -323,6 +331,7 @@ let utils = {
         ele.remove();
       }
     });
+    // patch those new tags
     tagsSet.forEach(tag=>{
       if(!oriTagsSet.has(tag)){
         let new_li=document.createElement('li');
@@ -334,6 +343,7 @@ let utils = {
       }
     })
 
+    // similarly...
     Dates.querySelectorAll('li').forEach(ele=>{
       oriDatesSet.add(ele.innerHTML)
       if(!datesSet.has(ele.innerHTML))
@@ -352,6 +362,7 @@ let utils = {
   }
 }
 
+// manage gestures to drag and delete todo item
 let gestures = {
   oldTouch: null,
   oldCoorX: null,
@@ -384,10 +395,10 @@ let gestures = {
   }
 }
 
+// manage the operations on the rich text
 let richTextEditor = {
-  update: function(){
+  updateEditor: function(){     // update the status of those UI components for editing richtext
     setTimeout(() => {
-      // 注意，此处 用 settimeout 以强制 将 当前 宏任务 推迟到 浏览器 更新 了 range 之后
       let range = window.getSelection().getRangeAt(0);
       let fontStyles = (range=>{
         let styleSet = new Set();
@@ -409,7 +420,7 @@ let richTextEditor = {
         $('.underline').checked=fontStyles[2];
     }, 0);
   },
-  editMode: function(command, tag){
+  editMode: function(command, tag){   // excute richtext command
     return function(){
       setTimeout(() => {
         $('#richtext').focus();
@@ -421,11 +432,10 @@ let richTextEditor = {
 
 window.onload = function init() {
     // init main input
-    var newTodo = $('.new-todo');
+    let newTodo = $('.new-todo');
     newTodo.addEventListener('keyup', flushers.addTodoItem);
 
     // init all filters
-
     $('body').addEventListener('click', utils.clearDropDown);
 
     $All('label').forEach(ele=>{
@@ -454,6 +464,7 @@ window.onload = function init() {
     $All('.filtered-tags li').forEach(ele=>{
       ele.onclick = flushers.toggleTag;
     })
+    $('.filter-icon').ontouchend = flushers.toggleFilters;
 
     // init modal
     let modal = $('.modal');
@@ -462,9 +473,7 @@ window.onload = function init() {
     $('#item-status').onclick = function(){
       $('.modal-panel').classList.toggle(CL_COMPLETED)
     }
-
-    $('.filter-icon').ontouchend = flushers.toggleFilters;
-
+    // init richtext editor
     $('.bold').ontouchend = richTextEditor.editMode('bold');
     $('.italic').ontouchend = richTextEditor.editMode('italic');
     $('.underline').ontouchend = richTextEditor.editMode('underline');
@@ -472,16 +481,18 @@ window.onload = function init() {
     $('.horizontal-line').ontouchend = richTextEditor.editMode('insertHorizontalRule');
     $('.paragraph').ontouchend = richTextEditor.editMode('formatBlock', '<p>');
 
-    $('#richtext').ontouchend = richTextEditor.update;
-    $('#richtext').onkeyup = richTextEditor.update;
+    $('#richtext').ontouchend = richTextEditor.updateEditor;
+    $('#richtext').onkeyup = richTextEditor.updateEditor;
 
+    // init toggle-all and clear-completed
     $('.toggle-all input').onclick = flushers.toggleAllItemStatus;
     $('.clear-completed').ontouchend = flushers.clearCompleted;
 
-    utils.diffTagsAndDates();
+    utils.updateTagsAndDates();
     flush();
   };
-  
+
+// save data
 window.onbeforeunload = function(){
   todoItems.forEach(ele=>{
     delete ele[matchSym];
