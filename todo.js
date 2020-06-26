@@ -39,10 +39,10 @@ function flush(){
             let matchLength = Math.min(condition[key].length, 7);
             let endIdx = Math.min(matchIdx+10, contentPlain.length);
             ele[matchSym] =                                         // format matched result
-`${startIdx>0?'..':''}${contentPlain.slice(startIdx, matchIdx)}\
-<strong>${contentPlain.slice(matchIdx, matchIdx+matchLength)}</strong>\
-${contentPlain.slice(matchIdx+matchLength, endIdx)}\
-${endIdx<contentPlain.length?'..':''}`;
+              `${startIdx>0?'..':''}${contentPlain.slice(startIdx, matchIdx)}`+
+              `<strong>${contentPlain.slice(matchIdx, matchIdx+matchLength)}</strong>`+
+              `${contentPlain.slice(matchIdx+matchLength, endIdx)}`+
+              `${endIdx<contentPlain.length?'..':''}`;
           }
           else if(!ele.title.startsWith(condition[key]))
               return false;
