@@ -536,7 +536,7 @@ div>ul>li:not(:last-child)::after{
 #tag ul{
     left: -0.3rem;
     overflow: auto;
-    max-height: 6rem;
+    max-height: 8rem;
     top: 2.6rem;
 }
 #tag li, .filtered-tags li{
@@ -620,6 +620,11 @@ div>ul>li:not(:last-child)::after{
     left: 2%;
     top: 10%;
     position: absolute
+}
+#date>ul{
+    width: 5.5rem;
+    max-height: 8rem;
+    overflow: auto;
 }
 .statistics{
     height: 2rem;
@@ -826,7 +831,7 @@ div>ul>li:not(:last-child)::after{
     left: 2%;
     top: 88%;
     overflow: auto;
-    max-height: 6rem;
+    max-height: 8rem;
 }
 .item-tag{
     display: inline-block;
