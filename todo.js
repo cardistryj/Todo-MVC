@@ -13,6 +13,14 @@ let dataSym = Symbol();     // bind data for DOM
 let matchSym = Symbol();    // bind matched content for todo item
 
 // load data
+/**
+ * title: String
+ * priority: String
+ * completed: Boolean
+ * date: String
+ * tags: Array
+ * content: String
+*/
 let todoItems = JSON.parse(localStorage.getItem('todoItems'))||[];
 
 // sift the orignal todo-list under given filter conditions
@@ -61,6 +69,10 @@ function flush(){
         }
       }
       return true;
+    })
+    renderlist.sort((ele1, ele2)=>{
+      let allPriority = [...$All('#priority li')].map(ele=> ele.innerHTML);
+      return allPriority.indexOf(ele1.priority) - allPriority.indexOf(ele2.priority);
     })
     render(renderlist);
 }
