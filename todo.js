@@ -12,7 +12,6 @@ const CL_ACTIVE = 'active';
 let dataSym = Symbol();     // bind data for DOM
 let matchSym = Symbol();    // bind matched content for todo item
 
-// load data
 /**
  * title: String
  * priority: String
@@ -21,6 +20,7 @@ let matchSym = Symbol();    // bind matched content for todo item
  * tags: Array
  * content: String
 */
+// load data
 let todoItems = JSON.parse(localStorage.getItem('todoItems'))||[];
 
 // sift the orignal todo-list under given filter conditions
